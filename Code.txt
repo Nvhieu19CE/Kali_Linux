@@ -1,0 +1,52 @@
+Enter the server as root
+- First, update the packages on the server to the latest version with the command:
+•	sudo apt update && sudo apt upgrade
+Some services are required to be installed with Zabbix 6.0 that you need to install below:
+-	MySQL/ MariaDB database server
+Step 1: Install and Configure MariaDB (Database Server)
+-	Install additional MariaDB repository with command:
+	sudo apt update
+	sudo apt -y install software-properties-common curl
+	curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+	sudo bash mariadb_repo_setup
+-	Update system and install MariaDB:
+•	sudo apt update
+•	sudo apt -y install mariadb-server mariadb-client
+-	Setting MariaDB:
+•	mysql_secure_installation
+-	Restart the service MariaDB:
+•	systemctl status mariadb
+•	systemctl enable mariadb
+•	systemctl restart mariadb
+-	Create Database for Zabbix:
+•	mysql -uroot -p
+•	Enter password:
+•	CREATE DATABASE zabbix character set utf8mb4 collate utf8mb4_bin;
+•	CREATE USER zabbix@localhost IDENTIFIED by 'zabbix_password';
+•	GRANT ALL PRIVILEGES ON zabbix.* TO zabbix@localhost;
+•	FLUSH PRIVILEGES; 
+•	QUIT 
+Step 2: Setting Zabbix 6.0
+-	Before proceeding with the installation, we need to add the Zabbix 6.0 repository to the Ubuntu system as follows:
+•	wget https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.0-1+ubuntu20.04_all.deb
+Or
+wget https://repo.zabbix.com/zabbix/6.2/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.2-4%2Bubuntu20.04_all.deb
+•	sudo  dpkg -i zabbix-release_6.0-1+ubuntu20.04_all.deb
+•	sudo apt update
+-	Continue to install Zabbix 6.0 server, Apache configuration file as well as PHP for Zabbix.
+•	sudo apt install zabbix-agent zabbix-server-mysql php-mysql zabbix-frontend-php zabbix-sql-scripts zabbix-apache-conf
+-	Once the installation is complete, verify the version of Zabbix is installed as follows:
+•	apt-cache policy zabbix-server-mysql
+-	Now will import the database into the newly created Database with the command:
+•	sudo zcat /usr/share/doc/zabbix-sql-scripts/mysql/server.sql.gz | mysql -uzabbix -p zabbix
+Step 3: Configure Database with Zabbix 6.0
+-	Open file /etc/zabbix/zabbix_server.conf , then edit the line:
+# DBPassword= => DBPassword=zabbix_password (replace it with the password created in Step 1)
+-	Restart Zabbix to apply the configuration:
+sudo systemctl restart zabbix-server
+-	Configure the Zabbix UI by editing the Apache configuration.
+sudo vi /etc/zabbix/apache.conf 
+-	Start and re-enable services zabbix-server, zabbix-agent, apache2
+•	sudo systemctl restart zabbix-server zabbix-agent apache2
+•	sudo systemctl enable zabbix-server zabbix-agent apache2
+
